@@ -2,7 +2,7 @@
 extends: default
 
 ignore: |
-  .pre-commit-config.yaml
+  .yamllint
   .github/workflows/*.yml
   .github/*.yml
 
