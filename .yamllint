@@ -2,9 +2,8 @@
 extends: default
 
 ignore: |
-  .yamllint
+  .pre-commit-config.yaml
   .github/workflows/*.yml
-  .github/*.yml
 
 rules:
   document-start: disable
