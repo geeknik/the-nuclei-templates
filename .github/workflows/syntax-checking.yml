@@ -1,6 +1,6 @@
 name: YAML Lint
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
   lintAllTheThings:
