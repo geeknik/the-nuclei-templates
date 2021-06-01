@@ -5,6 +5,7 @@ info:
   author: geeknik
   description: Drone is a Container-Native, Continuous Delivery Platform -- https://github.com/drone/drone
   severity: high
+  tags: config,auth,exposure
 
 requests:
   - method: GET
