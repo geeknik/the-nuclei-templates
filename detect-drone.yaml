@@ -1,11 +1,11 @@
-id: detect-drone
+id: detect-drone-config
 
 info:
-  name: Detect .drone.yml
+  name: Detect Drone Configuration
   author: geeknik
   description: Drone is a Container-Native, Continuous Delivery Platform -- https://github.com/drone/drone
   severity: high
-  tags: config,auth,exposure
+  tags: config,exposure,drone
 
 requests:
   - method: GET
@@ -16,9 +16,9 @@ requests:
     matchers:
       - type: word
         words:
-          - "services:"
-          - "environment:"
-          - "commands:"
+          - "kind:"
+          - "name:"
+          - "steps:"
         condition: and
       - type: status
         status:
