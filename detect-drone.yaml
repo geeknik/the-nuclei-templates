@@ -1,0 +1,24 @@
+id: detect-drone
+
+info:
+  name: Detect .drone.yml
+  author: geeknik
+  description: Drone is a Container-Native, Continuous Delivery Platform -- https://github.com/drone/drone
+  severity: high
+
+requests:
+  - method: GET
+    path:
+      - "{{BaseURL}}/.drone.yml"
+
+    matchers-condition: and
+    matchers:
+      - type: word
+        words:
+          - "services:"
+          - "environment:"
+          - "commands:"
+        condition: and
+      - type: status
+        status:
+          - 200
