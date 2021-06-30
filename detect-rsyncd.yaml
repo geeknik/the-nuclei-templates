@@ -20,6 +20,7 @@ network:
         words:
           - "RSYNCD: "
           - "ERROR: protocol startup error"
+        condition: and
     extractors:
       - type: regex
         regex:
