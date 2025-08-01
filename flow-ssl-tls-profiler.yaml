@@ -14,7 +14,7 @@ info:
 
 flow: |
   ssl();
-  
+
   // Process SSL certificate data using built-in variables
   const certSubject = template["ssl_subject_dn"];
   const certIssuer = template["ssl_issuer_dn"];
@@ -23,10 +23,10 @@ flow: |
   const tlsVersion = template["ssl_tls_version"];
   const cipherSuite = template["ssl_cipher"];
   const domains = template["ssl_domains"];
-  
+
   let securityScore = 100;
   let findings = [];
-  
+
   // Build certificate analysis
   const certAnalysis = {
     "subject": certSubject || "N/A",
@@ -37,9 +37,9 @@ flow: |
     "cipher_suite": cipherSuite || "N/A",
     "domains": domains || "N/A"
   };
-  
+
   set("cert_analysis", JSON.stringify(certAnalysis, null, 2));
-  
+
   // Check certificate expiration
   if (certNotAfter) {
     try {
@@ -62,7 +62,7 @@ flow: |
       findings.push("Could not parse expiration date");
     }
   }
-  
+
   // Check TLS version
   if (tlsVersion) {
     const version = tlsVersion.toLowerCase();
@@ -74,7 +74,7 @@ flow: |
       set("weak_tls_version", false);
     }
   }
-  
+
   // Calculate final security assessment
   const finalScore = Math.max(securityScore, 0);
   const riskLevel = finalScore > 80 ? "Low" :
@@ -84,7 +84,7 @@ flow: |
   set("ssl_security_score", finalScore);
   set("ssl_risk_level", riskLevel);
   set("security_findings", findings.join("; "));
-  
+
   http();
 
 ssl:
