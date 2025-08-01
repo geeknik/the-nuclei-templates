@@ -1,0 +1,301 @@
+id: flow-supply-chain-analyzer
+
+info:
+  name: Supply Chain Security Analyzer
+  author: geeknik
+  severity: medium
+  description: |
+    Comprehensive supply chain security assessment using Flow Protocol for dependency
+    analysis and third-party component evaluation. This template performs progressive
+    supply chain analysis including dependency extraction, CDN security assessment,
+    and third-party resource validation while maintaining defensive research principles
+    for identifying supply chain vulnerabilities and misconfigurations.
+  reference:
+    - https://owasp.org/www-project-dependency-check/
+    - https://csrc.nist.gov/Projects/ssdf
+  tags: supply-chain,dependencies,security,flow,third-party,defensive
+
+flow: |
+  // Extract main page to analyze dependencies
+  http("main-page-analysis");
+
+  const mainResponse = template["main_response"];
+  template["dependencies"] = [];
+  template["cdn_resources"] = [];
+  template["external_domains"] = [];
+
+  if (mainResponse) {
+    // Extract JavaScript dependencies
+    const jsRegex = /<script[^>]*src=["']([^"']+)["'][^>]*>/gi;
+    let match;
+    while ((match = jsRegex.exec(mainResponse)) !== null) {
+      template["dependencies"].push({
+        "type": "javascript",
+        "url": match[1],
+        "integrity": extractIntegrity(match[0])
+      });
+    }
+
+    // Extract CSS dependencies
+    const cssRegex = /<link[^>]*href=["']([^"']+\.css[^"']*)["'][^>]*>/gi;
+    while ((match = cssRegex.exec(mainResponse)) !== null) {
+      template["dependencies"].push({
+        "type": "css",
+        "url": match[1],
+        "integrity": extractIntegrity(match[0])
+      });
+    }
+
+    // Identify CDN resources
+    const cdnPatterns = [
+      "cdn.jsdelivr.net",
+      "cdnjs.cloudflare.com",
+      "unpkg.com",
+      "ajax.googleapis.com",
+      "maxcdn.bootstrapcdn.com"
+    ];
+
+    cdnPatterns.forEach(pattern => {
+      const regex = new RegExp(`https?://[^"']*${pattern}[^"']*`, 'gi');
+      let cdnMatch;
+      while ((cdnMatch = regex.exec(mainResponse)) !== null) {
+        template["cdn_resources"].push({
+          "provider": pattern,
+          "url": cdnMatch[0]
+        });
+      }
+    });
+
+    // Extract external domains
+    const domainSet = new Set();
+    const urlRegex = /https?:\/\/([^\/\s"']+)/gi;
+    let domainMatch;
+    while ((domainMatch = urlRegex.exec(mainResponse)) !== null) {
+      const domain = domainMatch[1];
+      if (!domain.includes(template["target_domain"])) {
+        domainSet.add(domain);
+      }
+    }
+    template["external_domains"] = Array.from(domainSet).slice(0, 10);
+  }
+
+  // Function to extract integrity attribute
+  function extractIntegrity(tag) {
+    const integrityMatch = tag.match(/integrity=["']([^"']+)["']/i);
+    return integrityMatch ? integrityMatch[1] : null;
+  }
+
+  // Analyze dependency security
+  template["security_findings"] = [];
+  let riskScore = 0;
+
+  // Check for dependencies without integrity
+  const depsWithoutIntegrity = template["dependencies"].filter(dep => !dep.integrity);
+  if (depsWithoutIntegrity.length > 0) {
+    template["security_findings"].push({
+      "type": "missing_subresource_integrity",
+      "severity": "medium",
+      "description": `${depsWithoutIntegrity.length} dependencies lack subresource integrity`,
+      "count": depsWithoutIntegrity.length
+    });
+    riskScore += 20;
+  }
+
+  // Check for insecure dependencies (HTTP instead of HTTPS)
+  const insecureDeps = template["dependencies"].filter(dep => !dep.url.startsWith("https://"));
+  if (insecureDeps.length > 0) {
+    template["security_findings"].push({
+      "type": "insecure_dependencies",
+      "severity": "high",
+      "description": `${insecureDeps.length} dependencies served over HTTP`,
+      "count": insecureDeps.length
+    });
+    riskScore += 40;
+  }
+
+  // Test specific dependencies for accessibility and content
+  const testDependencies = template["dependencies"].slice(0, 5); // Limit for efficiency
+
+  for (let dep of iterate(testDependencies)) {
+    set("current_dependency", dep.url);
+
+    http("dependency-test");
+
+    const depResponse = template["dependency_response"];
+    const depStatus = template["dependency_status"];
+
+    if (depStatus === "200" && depResponse) {
+      // Check for potentially malicious content patterns
+      const maliciousPatterns = [
+        "eval(",
+        "document.write(",
+        "cryptocurrency",
+        "bitcoin",
+        "mining"
+      ];
+
+      const hasMaliciousContent = maliciousPatterns.some(pattern =>
+        depResponse.toLowerCase().includes(pattern.toLowerCase())
+      );
+
+      if (hasMaliciousContent) {
+        template["security_findings"].push({
+          "type": "potentially_malicious_dependency",
+          "severity": "high",
+          "description": `Potentially malicious content detected in ${dep.url}`,
+          "dependency": dep.url
+        });
+        riskScore += 35;
+      }
+
+      // Check for version information and known vulnerable versions
+      if (dep.url.includes("jquery")) {
+        const versionMatch = dep.url.match(/(\d+)\.(\d+)\.(\d+)/);
+        if (versionMatch) {
+          const majorVersion = parseInt(versionMatch[1]);
+          const minorVersion = parseInt(versionMatch[2]);
+
+          // Example: jQuery < 3.5.0 has known vulnerabilities
+          if (majorVersion < 3 || (majorVersion === 3 && minorVersion < 5)) {
+            template["security_findings"].push({
+              "type": "vulnerable_dependency_version",
+              "severity": "medium",
+              "description": `jQuery version ${versionMatch[0]} has known vulnerabilities`,
+              "dependency": dep.url
+            });
+            riskScore += 25;
+          }
+        }
+      }
+    }
+  }
+
+  // Analyze Content Security Policy
+  http("csp-analysis");
+
+  const cspHeaders = template["csp_headers"];
+  if (cspHeaders) {
+    const cspMatch = cspHeaders.match(/content-security-policy:\s*([^\r\n]+)/i);
+    if (cspMatch) {
+      const csp = cspMatch[1];
+      template["csp_analysis"] = {
+        "present": true,
+        "script_src": csp.includes("script-src"),
+        "unsafe_inline": csp.includes("'unsafe-inline'"),
+        "unsafe_eval": csp.includes("'unsafe-eval'"),
+        "allows_any": csp.includes("*")
+      };
+
+      if (template["csp_analysis"]["unsafe_inline"]) {
+        template["security_findings"].push({
+          "type": "unsafe_csp_configuration",
+          "severity": "medium",
+          "description": "CSP allows unsafe-inline which reduces protection"
+        });
+        riskScore += 15;
+      }
+    } else {
+      template["csp_analysis"] = {"present": false};
+      template["security_findings"].push({
+        "type": "missing_csp",
+        "severity": "medium",
+        "description": "Content Security Policy not implemented"
+      });
+      riskScore += 20;
+    }
+  }
+
+  // Calculate final supply chain risk assessment
+  template["supply_chain_risk_score"] = Math.min(riskScore, 100);
+  template["supply_chain_risk_level"] = riskScore > 70 ? "High" :
+                                       riskScore > 40 ? "Medium" : "Low";
+
+  // Generate recommendations
+  template["recommendations"] = [];
+  if (depsWithoutIntegrity.length > 0) {
+    template["recommendations"].push("Implement Subresource Integrity (SRI) for all external dependencies");
+  }
+  if (insecureDeps.length > 0) {
+    template["recommendations"].push("Ensure all dependencies are served over HTTPS");
+  }
+  if (!template["csp_analysis"] || !template["csp_analysis"]["present"]) {
+    template["recommendations"].push("Implement Content Security Policy to restrict external resources");
+  }
+  template["recommendations"].push("Regularly audit and update third-party dependencies");
+
+http:
+  - id: main-page-analysis
+    method: GET
+    path:
+      - "{{BaseURL}}"
+
+    matchers:
+      - type: status
+        status:
+          - 200
+        internal: true
+
+    extractors:
+      - type: regex
+        name: main_response
+        internal: true
+        regex:
+          - "(?s).*"
+
+  - id: dependency-head-test
+    method: HEAD
+    path:
+      - "{{current_dependency}}"
+
+    matchers:
+      - type: status
+        status:
+          - 200
+          - 404
+        internal: true
+
+    extractors:
+      - type: regex
+        name: dependency_status
+        internal: true
+        regex:
+          - "(?s).*"
+
+  - id: dependency-content-test
+    method: GET
+    path:
+      - "{{current_dependency}}"
+
+    matchers:
+      - type: status
+        status:
+          - 200
+        internal: true
+
+    extractors:
+      - type: regex
+        name: dependency_response
+        internal: true
+        regex:
+          - "(?s).*"
+
+  - id: csp-analysis
+    method: GET
+    path:
+      - "{{BaseURL}}"
+
+    matchers:
+      - type: status
+        status:
+          - 200
+        internal: true
+
+    extractors:
+      - type: regex
+        name: csp_headers
+        part: header
+        internal: true
+        regex:
+          - "(?s).*"
+
+# Flow template - matchers and extractors handled by Flow logic

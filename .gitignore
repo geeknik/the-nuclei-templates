@@ -51,6 +51,7 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 config.local.*
+.nuclei-ignore
 
 # Build and output directories
 dist/
