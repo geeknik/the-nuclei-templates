@@ -47,10 +47,10 @@ flow: |
       const expiry = new Date(certNotAfter);
       const daysUntilExpiry = Math.floor((expiry - now) / (24 * 60 * 60 * 1000));
       const expiresSoon = daysUntilExpiry < 30;
-      
+
       set("cert_expires_soon", expiresSoon);
       set("days_until_expiry", daysUntilExpiry);
-      
+
       if (expiresSoon && daysUntilExpiry > 0) {
         securityScore -= 20;
         findings.push("Certificate expires in " + daysUntilExpiry + " days");
@@ -80,7 +80,7 @@ flow: |
   const riskLevel = finalScore > 80 ? "Low" :
                    finalScore > 60 ? "Medium" :
                    finalScore > 40 ? "High" : "Critical";
-  
+
   set("ssl_security_score", finalScore);
   set("ssl_risk_level", riskLevel);
   set("security_findings", findings.join("; "));
