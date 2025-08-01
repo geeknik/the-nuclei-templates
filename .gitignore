@@ -36,6 +36,7 @@ Thumbs.db
 *.orig
 *.rej
 *.patch
+resume.cfg
 
 # Logs
 *.log
