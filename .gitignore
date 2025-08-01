@@ -1,3 +1,74 @@
+# Claude AI Assistant files
+.claude
+CLAUDE.md
+Claude.md
+CLAUDE_*
+claude_*
+.claude_*
+
+# Warp terminal files
+.warp/
+*.warp
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor and IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.vim/
+*.sublime-*
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.orig
+*.rej
+*.patch
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment and configuration files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+config.local.*
+
+# Build and output directories
+dist/
+build/
+out/
+target/
+
+# Dependency directories
+node_modules/
+vendor/
+.pnpm-store/
+
+# Package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Go specific
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -11,5 +82,77 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+# Go workspace file
+go.work
+go.work.sum
+
+# Python specific
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+PIPFILE.lock
+
+# Security and sensitive files
+*.key
+*.pem
+*.cert
+*.crt
+*.p12
+*.pfx
+secrets.yaml
+secrets.yml
+*.secret
+
+# Test and coverage reports
+coverage/
+.coverage
+.pytest_cache/
+.tox/
+.nox/
+htmlcov/
+
+# Documentation build
+docs/_build/
+site/
+
+# Cache directories
+.cache/
+.parcel-cache/
+.npm/
+.yarn/
+
+# Personal notes and TODO files
+TODO.md
+NOTES.md
+SCRATCH.md
+*.notes
+
+# Nuclei specific
+# Exclude potential sensitive test results
+test-results/
+reports/
+*.json.bak
+*.yaml.bak
+*.yml.bak
+
+# Backup files from editors
+*~
+.#*
+#*#
