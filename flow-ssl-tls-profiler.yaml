@@ -30,7 +30,7 @@ flow: |
   // Build certificate analysis
   const certAnalysis = {
     "subject": certSubject || "N/A",
-    "issuer": certIssuer || "N/A", 
+    "issuer": certIssuer || "N/A",
     "valid_from": certNotBefore || "N/A",
     "valid_to": certNotAfter || "N/A",
     "tls_version": tlsVersion || "N/A",
