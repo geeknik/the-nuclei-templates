@@ -26,17 +26,17 @@ http:
       - "{{BaseURL}}/api/graphql"
       - "{{BaseURL}}/v1/graphql"
       - "{{BaseURL}}/query"
-    
+
     headers:
       Content-Type: application/json
       Accept: application/json
-    
+
     body: |
       {
         "query": "subscription { __schema { subscriptionType { fields { name description args { name type { name } } } } } }",
         "variables": {}
       }
-    
+
     matchers-condition: and
     matchers:
       - type: word
@@ -56,11 +56,11 @@ http:
       - "{{BaseURL}}/api/graphql"
       - "{{BaseURL}}/v1/graphql"
       - "{{BaseURL}}/query"
-    
+
     headers:
       Content-Type: application/json
       Accept: application/json
-    
+
     body: |
       {
         "query": "mutation RegisterWebhook($url: String!) { registerWebhook(callbackUrl: $url) { id status } }",
@@ -75,11 +75,11 @@ http:
       - "{{BaseURL}}/api/graphql"
       - "{{BaseURL}}/v1/graphql"
       - "{{BaseURL}}/query"
-    
+
     headers:
       Content-Type: application/json
       Accept: application/json
-    
+
     body: |
       {
         "query": "mutation CreateSubscription($callback: String!) { createSubscription(webhookUrl: $callback) { subscriptionId } }",
@@ -94,11 +94,11 @@ http:
       - "{{BaseURL}}/api/graphql"
       - "{{BaseURL}}/v1/graphql"
       - "{{BaseURL}}/query"
-    
+
     headers:
       Content-Type: application/json
       Accept: application/json
-    
+
     body: |
       {
         "query": "mutation ImportSchema($url: String!) { importSchema(schemaUrl: $url) { success errors } }",
