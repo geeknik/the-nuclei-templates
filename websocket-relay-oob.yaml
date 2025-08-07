@@ -1,0 +1,123 @@
+id: websocket-relay-oob
+
+info:
+  name: WebSocket Message Relay OOB Detection
+  author: geeknik
+  severity: high
+  description: |
+    Detects WebSocket endpoints that relay or proxy messages to external services,
+    potentially allowing SSRF through WebSocket message forwarding, bridge connections,
+    or relay functionality that can be abused to reach internal services.
+  reference:
+    - https://portswigger.net/web-security/websockets/what-are-websockets
+    - https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/11-Client-side_Testing/10-Testing_WebSockets
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:L/A:N
+    cvss-score: 8.2
+    cwe-id: CWE-918
+  tags: websocket,oob,ssrf,relay,proxy,bridge
+
+variables:
+  callback_url: "{{interactsh-url}}"
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/ws/relay"
+      - "{{BaseURL}}/websocket/proxy"
+      - "{{BaseURL}}/api/ws/forward"
+      - "{{BaseURL}}/bridge/connect"
+      - "{{BaseURL}}/ws/tunnel"
+
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+
+    body: |
+      {
+        "target": "{{callback_url}}",
+        "relay_to": "{{callback_url}}/endpoint",
+        "forward_url": "{{callback_url}}/webhook"
+      }
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/ws/message"
+      - "{{BaseURL}}/websocket/send"
+      - "{{BaseURL}}/api/ws/broadcast"
+
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+
+    body: |
+      {
+        "type": "relay",
+        "message": {
+          "url": "{{callback_url}}",
+          "method": "GET",
+          "headers": {"User-Agent": "WebSocket-Relay"}
+        }
+      }
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/ws/bridge"
+      - "{{BaseURL}}/websocket/connect"
+      - "{{BaseURL}}/api/ws/tunnel"
+
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+
+    body: |
+      {
+        "bridge_config": {
+          "upstream": "{{callback_url}}",
+          "downstream": "ws://{{callback_url}}/ws",
+          "proxy_headers": true
+        }
+      }
+
+  - method: PUT
+    path:
+      - "{{BaseURL}}/ws/config"
+      - "{{BaseURL}}/websocket/settings"
+      - "{{BaseURL}}/api/ws/proxy-config"
+
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+
+    body: |
+      {
+        "proxy_target": "{{callback_url}}",
+        "webhook_url": "{{callback_url}}/callback",
+        "forward_all": true,
+        "external_relay": "{{callback_url}}/relay"
+      }
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/ws/external"
+      - "{{BaseURL}}/websocket/external-connect"
+      - "{{BaseURL}}/api/ws/remote"
+
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+
+    body: |
+      {
+        "external_ws": "wss://{{callback_url}}/ws",
+        "relay_messages": true,
+        "callback_on_connect": "{{callback_url}}/connected"
+      }
+
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "http"
+          - "dns"
+        condition: or

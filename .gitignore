@@ -158,3 +158,10 @@ reports/
 *~
 .#*
 #*#
+
+# Non-template trash
+*.sh
+*.py
+*.db
+*.json
+venv/

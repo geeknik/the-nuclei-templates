@@ -1,0 +1,114 @@
+id: websocket-origin-bypass-oob
+
+info:
+  name: WebSocket Origin Validation Bypass OOB Detection
+  author: geeknik
+  severity: high
+  description: |
+    Detects WebSocket endpoints with weak origin validation that can be bypassed
+    to establish cross-origin connections and trigger external callbacks through
+    origin spoofing, subdomain takeover scenarios, or referer manipulation.
+  reference:
+    - https://portswigger.net/web-security/websockets/cross-site-websocket-hijacking
+    - https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/11-Client-side_Testing/10-Testing_WebSockets
+    - https://christian-schneider.net/CrossSiteWebSocketHijacking.html
+  classification:
+    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:L/A:N
+    cvss-score: 8.1
+    cwe-id: CWE-346
+  tags: websocket,oob,csrf,origin-bypass,cross-origin
+
+variables:
+  callback_url: "{{interactsh-url}}"
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/ws"
+      - "{{BaseURL}}/websocket"
+      - "{{BaseURL}}/socket.io/"
+      - "{{BaseURL}}/api/ws"
+
+    headers:
+      Upgrade: websocket
+      Connection: Upgrade
+      Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+      Sec-WebSocket-Version: 13
+      Origin: "{{callback_url}}"
+      Referer: "{{callback_url}}/ws-client"
+
+  - method: GET
+    path:
+      - "{{BaseURL}}/ws"
+      - "{{BaseURL}}/websocket"
+      - "{{BaseURL}}/socket.io/"
+      - "{{BaseURL}}/api/ws"
+
+    headers:
+      Upgrade: websocket
+      Connection: Upgrade
+      Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+      Sec-WebSocket-Version: 13
+      Origin: "null"
+      X-Forwarded-Host: "{{callback_url}}"
+      X-Original-URL: "{{callback_url}}/websocket"
+
+  - method: GET
+    path:
+      - "{{BaseURL}}/ws"
+      - "{{BaseURL}}/websocket"
+      - "{{BaseURL}}/socket.io/"
+      - "{{BaseURL}}/api/ws"
+
+    headers:
+      Upgrade: websocket
+      Connection: Upgrade
+      Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+      Sec-WebSocket-Version: 13
+      Origin: "{{Hostname}}.{{callback_url}}"
+      Host: "{{callback_url}}"
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/ws/auth"
+      - "{{BaseURL}}/websocket/validate"
+      - "{{BaseURL}}/api/ws/origin-check"
+
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+      Origin: "{{callback_url}}"
+      Referer: "{{callback_url}}/app"
+
+    body: |
+      {
+        "origin": "{{callback_url}}",
+        "allowed_origins": ["{{callback_url}}"],
+        "callback_url": "{{callback_url}}/validated"
+      }
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/ws/cors"
+      - "{{BaseURL}}/websocket/cross-origin"
+      - "{{BaseURL}}/api/ws/bypass"
+
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+      Access-Control-Request-Origin: "{{callback_url}}"
+
+    body: |
+      {
+        "bypass_origin": "{{callback_url}}",
+        "trusted_domain": "{{callback_url}}",
+        "redirect_callback": "{{callback_url}}/cors-success"
+      }
+
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "http"
+          - "dns"
+        condition: or
