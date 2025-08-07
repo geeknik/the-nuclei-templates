@@ -45,7 +45,7 @@ http:
           - '"subscriptionType"'
           - '"fields"'
         condition: and
-  
+
       - type: status
         status:
           - 200
