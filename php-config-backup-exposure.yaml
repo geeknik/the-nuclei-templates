@@ -39,31 +39,32 @@ requests:
           - 200
 
       # Must contain PHP code
-      - type: regex
-        regex:
-          - '<\?php'
-          - '\$[a-zA-Z_][\w]*\s*='  # PHP variable assignment
+      - type: word
+        words:
+          - "<?php"
+          - "$"
+        condition: and
+
+      # Must contain actual configuration data - using word matching to avoid regex issues
+      - type: word
+        words:
+          - "$db_password"
+          - "$database_password"
+          - "$db_pass"
+          - "$mysql_password"
+          - "$DB_PASSWORD"
+          - "DB_PASSWORD"
+          - "$api_key"
+          - "$API_KEY"
+          - "$secret_key"
+          - "define("
         condition: or
 
-      # Must contain actual configuration data
-      - type: regex
-        regex:
-          # Database credentials
-          - '\$(db_password|database_password|db_pass|mysql_password|DB_PASSWORD)\s*=\s*["\'][^"\']+["\']'
-          - '\$(db_host|database_host|DB_HOST)\s*=\s*["\'][^"\']+["\']'
-          - 'define\s*\(\s*["\']DB_PASSWORD["\']\s*,\s*["\'][^"\']+["\']\s*\)'
-          
-          # API configurations
-          - '\$(api_key|apikey|API_KEY|secret_key)\s*=\s*["\'][a-zA-Z0-9_\-]{20,}["\']'
-          - 'define\s*\(\s*["\']API_KEY["\']\s*,\s*["\'][^"\']+["\']\s*\)'
-          
-          # Framework configs
-          - '\$(app\[[\'"](key|secret|password)[\'"]]\])\s*=\s*["\'][^"\']+["\']'
-          - '[\'"](password|secret|key)[\'"]]\s*=>\s*["\'][^"\']+["\']'
-          
-          # Connection arrays
-          - 'array\s*\([^)]*[\'"](password|pwd|pass)[\'"]]\s*=>\s*["\'][^"\']+["\']'
-        condition: or
+      # Must have assignment operators
+      - type: word
+        words:
+          - "="
+          - "=>"
 
       # Exclude empty configs and placeholders
       - type: word
@@ -89,14 +90,9 @@ requests:
 
     extractors:
       - type: regex
-        name: db_password
+        name: credentials
         regex:
-          - '\$(?:db_password|DB_PASSWORD)\s*=\s*["\'"]([^"\'']+)["\''"]'
-          - 'define\s*\(\s*["\''"]DB_PASSWORD["\''"]\s*,\s*["\'']([^"\'']+)["\'']\s*\)'
-        group: 1
-
-      - type: regex
-        name: api_keys
-        regex:
-          - '\$(?:api_key|API_KEY)\s*=\s*["\'']([a-zA-Z0-9_\-]{20,})["\''"]'
+          - 'password.{0,5}=.{0,5}["\''](.+?)["\'']'
+          - 'DB_PASSWORD.{0,5},.{0,5}["\''](.+?)["\'']'
+          - 'api_key.{0,5}=.{0,5}["\'']([a-zA-Z0-9_\-]{20,})["\'']'
         group: 1

@@ -47,23 +47,23 @@ requests:
           # Database credentials with values
           - '(db_password|database_password|db_pass|mysql_password|postgres_password)\s*=\s*[^\s\n]{8,}'
           - '(db_user|database_user|mysql_user|postgres_user)\s*=\s*[^\s\n]+'
-          
+
           # API keys with entropy
           - '(api_key|apikey|api_secret)\s*=\s*[a-zA-Z0-9_\-]{32,}'
           - '(secret_key|secret|private_key)\s*=\s*[a-zA-Z0-9_\-]{32,}'
           - '(access_token|auth_token)\s*=\s*[a-zA-Z0-9_\-\.]{20,}'
-          
+
           # AWS credentials
           - 'aws_access_key_id\s*=\s*AKIA[0-9A-Z]{16}'
           - 'aws_secret_access_key\s*=\s*[a-zA-Z0-9/\+=]{40}'
-          
+
           # Connection strings with passwords
-          - 'connection_string\s*=\s*.*(password|pwd)=[^\s;]+' 
+          - 'connection_string\s*=\s*.*(password|pwd)=[^\s;]+'
           - 'dsn\s*=\s*.*(password|pwd)=[^\s;]+'
-          
+
           # SMTP credentials
           - '(smtp_password|mail_password|email_password)\s*=\s*[^\s\n]{6,}'
-          
+
           # Encryption keys
           - '(encryption_key|encrypt_key|cipher_key)\s*=\s*[a-zA-Z0-9+/=]{16,}'
         condition: or
@@ -72,7 +72,7 @@ requests:
       - type: word
         words:
           - "example_password"
-          - "your_password_here" 
+          - "your_password_here"
           - "changeme"
           - "INSERT_PASSWORD"
           - "TODO"
