@@ -21,107 +21,85 @@ info:
 variables:
   callback_url: "{{interactsh-url}}"
 
-http:
-  - method: POST
+websocket:
+  - address: "{{BaseURL}}"
     path:
-      - "{{BaseURL}}/ws/subscribe"
-      - "{{BaseURL}}/websocket/subscription"
-      - "{{BaseURL}}/api/ws/events"
-      - "{{BaseURL}}/socket.io/subscribe"
-      - "{{BaseURL}}/realtime/subscribe"
+      - "/ws"
+      - "/websocket"
+      - "/socket.io/"
+      - "/api/ws"
+      - "/realtime"
 
-    headers:
-      Content-Type: application/json
-      Accept: application/json
+    inputs:
+      - data: |
+          {
+            "type": "subscribe",
+            "event": "user.update",
+            "callback_url": "{{callback_url}}/webhook",
+            "webhook": "{{callback_url}}/events"
+          }
+      - data: |
+          {
+            "action": "notification_config",
+            "config": {
+              "endpoint": "{{callback_url}}/notify",
+              "events": ["message", "connect", "disconnect"],
+              "format": "json"
+            }
+          }
+      - data: |
+          {
+            "command": "webhook_setup",
+            "webhook_url": "{{callback_url}}/callback",
+            "events": ["*"],
+            "retry_failed": true,
+            "external_webhook": "{{callback_url}}/external"
+          }
 
-    body: |
-      {
-        "event": "user.update",
-        "callback_url": "{{callback_url}}/webhook",
-        "webhook": "{{callback_url}}/events"
-      }
-
-  - method: POST
+  - address: "{{BaseURL}}"
     path:
-      - "{{BaseURL}}/ws/notifications"
-      - "{{BaseURL}}/websocket/notify"
-      - "{{BaseURL}}/api/ws/alerts"
+      - "/ws/stream"
+      - "/websocket/feed"
+      - "/api/ws/live"
 
-    headers:
-      Content-Type: application/json
-      Accept: application/json
+    inputs:
+      - data: |
+          {
+            "type": "stream_config",
+            "destination": "{{callback_url}}/stream",
+            "format": "json",
+            "real_time": true,
+            "callback_on_error": "{{callback_url}}/error"
+          }
 
-    body: |
-      {
-        "notification_config": {
-          "endpoint": "{{callback_url}}/notify",
-          "events": ["message", "connect", "disconnect"],
-          "format": "json"
-        }
-      }
-
-  - method: PUT
+  - address: "{{BaseURL}}"
     path:
-      - "{{BaseURL}}/ws/webhook"
-      - "{{BaseURL}}/websocket/callback"
-      - "{{BaseURL}}/api/ws/hook"
+      - "/ws/integration"
+      - "/websocket/external"
+      - "/api/ws/third-party"
 
-    headers:
-      Content-Type: application/json
-      Accept: application/json
+    inputs:
+      - data: |
+          {
+            "type": "integration",
+            "integration": {
+              "type": "webhook",
+              "url": "{{callback_url}}/integration",
+              "auth_callback": "{{callback_url}}/auth",
+              "data_endpoint": "{{callback_url}}/data"
+            }
+          }
+      - data: |
+          {
+            "action": "external_subscription",
+            "external_url": "{{callback_url}}/subscribe",
+            "callback_events": ["all"]
+          }
 
-    body: |
-      {
-        "webhook_url": "{{callback_url}}/callback",
-        "events": ["*"],
-        "retry_failed": true,
-        "external_webhook": "{{callback_url}}/external"
-      }
-
-  - method: POST
-    path:
-      - "{{BaseURL}}/ws/stream"
-      - "{{BaseURL}}/websocket/feed"
-      - "{{BaseURL}}/api/ws/live"
-
-    headers:
-      Content-Type: application/json
-      Accept: application/json
-
-    body: |
-      {
-        "stream_config": {
-          "destination": "{{callback_url}}/stream",
-          "format": "json",
-          "real_time": true,
-          "callback_on_error": "{{callback_url}}/error"
-        }
-      }
-
-  - method: POST
-    path:
-      - "{{BaseURL}}/ws/integration"
-      - "{{BaseURL}}/websocket/external"
-      - "{{BaseURL}}/api/ws/third-party"
-
-    headers:
-      Content-Type: application/json
-      Accept: application/json
-
-    body: |
-      {
-        "integration": {
-          "type": "webhook",
-          "url": "{{callback_url}}/integration",
-          "auth_callback": "{{callback_url}}/auth",
-          "data_endpoint": "{{callback_url}}/data"
-        }
-      }
-
-    matchers:
-      - type: word
-        part: interactsh_protocol
-        words:
-          - "http"
-          - "dns"
-        condition: or
+matchers:
+  - type: word
+    part: interactsh_protocol
+    words:
+      - "http"
+      - "dns"
+    condition: or

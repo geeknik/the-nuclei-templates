@@ -21,94 +21,83 @@ info:
 variables:
   callback_url: "{{interactsh-url}}"
 
-http:
-  - method: GET
+websocket:
+  - address: "{{BaseURL}}"
     path:
-      - "{{BaseURL}}/ws"
-      - "{{BaseURL}}/websocket"
-      - "{{BaseURL}}/socket.io/"
-      - "{{BaseURL}}/api/ws"
+      - "/ws"
+      - "/websocket"
+      - "/socket.io/"
+      - "/api/ws"
 
     headers:
-      Upgrade: websocket
-      Connection: Upgrade
-      Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
-      Sec-WebSocket-Version: 13
       Origin: "{{callback_url}}"
       Referer: "{{callback_url}}/ws-client"
 
-  - method: GET
+    inputs:
+      - data: |
+          {
+            "type": "origin_test",
+            "callback_url": "{{callback_url}}/origin-bypass",
+            "external_origin": "{{callback_url}}"
+          }
+      - data: |
+          {
+            "action": "cross_origin_check",
+            "origin": "{{callback_url}}",
+            "allowed_origins": ["{{callback_url}}"],
+            "callback_url": "{{callback_url}}/validated"
+          }
+
+  - address: "{{BaseURL}}"
     path:
-      - "{{BaseURL}}/ws"
-      - "{{BaseURL}}/websocket"
-      - "{{BaseURL}}/socket.io/"
-      - "{{BaseURL}}/api/ws"
+      - "/ws"
+      - "/websocket"
+      - "/socket.io/"
+      - "/api/ws"
 
     headers:
-      Upgrade: websocket
-      Connection: Upgrade
-      Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
-      Sec-WebSocket-Version: 13
       Origin: "null"
       X-Forwarded-Host: "{{callback_url}}"
       X-Original-URL: "{{callback_url}}/websocket"
 
-  - method: GET
+    inputs:
+      - data: |
+          {
+            "type": "null_origin_bypass",
+            "forwarded_host": "{{callback_url}}",
+            "callback_url": "{{callback_url}}/null-origin"
+          }
+
+  - address: "{{BaseURL}}"
     path:
-      - "{{BaseURL}}/ws"
-      - "{{BaseURL}}/websocket"
-      - "{{BaseURL}}/socket.io/"
-      - "{{BaseURL}}/api/ws"
+      - "/ws"
+      - "/websocket"
+      - "/socket.io/"
+      - "/api/ws"
 
     headers:
-      Upgrade: websocket
-      Connection: Upgrade
-      Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
-      Sec-WebSocket-Version: 13
       Origin: "{{Hostname}}.{{callback_url}}"
       Host: "{{callback_url}}"
 
-  - method: POST
-    path:
-      - "{{BaseURL}}/ws/auth"
-      - "{{BaseURL}}/websocket/validate"
-      - "{{BaseURL}}/api/ws/origin-check"
+    inputs:
+      - data: |
+          {
+            "type": "subdomain_bypass",
+            "spoofed_origin": "{{Hostname}}.{{callback_url}}",
+            "callback_url": "{{callback_url}}/subdomain-bypass"
+          }
+      - data: |
+          {
+            "action": "cors_bypass",
+            "bypass_origin": "{{callback_url}}",
+            "trusted_domain": "{{callback_url}}",
+            "redirect_callback": "{{callback_url}}/cors-success"
+          }
 
-    headers:
-      Content-Type: application/json
-      Accept: application/json
-      Origin: "{{callback_url}}"
-      Referer: "{{callback_url}}/app"
-
-    body: |
-      {
-        "origin": "{{callback_url}}",
-        "allowed_origins": ["{{callback_url}}"],
-        "callback_url": "{{callback_url}}/validated"
-      }
-
-  - method: POST
-    path:
-      - "{{BaseURL}}/ws/cors"
-      - "{{BaseURL}}/websocket/cross-origin"
-      - "{{BaseURL}}/api/ws/bypass"
-
-    headers:
-      Content-Type: application/json
-      Accept: application/json
-      Access-Control-Request-Origin: "{{callback_url}}"
-
-    body: |
-      {
-        "bypass_origin": "{{callback_url}}",
-        "trusted_domain": "{{callback_url}}",
-        "redirect_callback": "{{callback_url}}/cors-success"
-      }
-
-    matchers:
-      - type: word
-        part: interactsh_protocol
-        words:
-          - "http"
-          - "dns"
-        condition: or
+matchers:
+  - type: word
+    part: interactsh_protocol
+    words:
+      - "http"
+      - "dns"
+    condition: or

@@ -21,76 +21,66 @@ info:
 variables:
   callback_url: "{{interactsh-url}}"
 
-http:
-  - method: GET
+websocket:
+  - address: "{{BaseURL}}"
     path:
-      - "{{BaseURL}}/ws"
-      - "{{BaseURL}}/websocket"
-      - "{{BaseURL}}/socket.io/"
-      - "{{BaseURL}}/api/ws"
-      - "{{BaseURL}}/chat"
-      - "{{BaseURL}}/live"
-      - "{{BaseURL}}/stream"
+      - "/ws"
+      - "/websocket"
+      - "/socket.io/"
+      - "/api/ws"
+      - "/chat"
+      - "/live"
+      - "/stream"
 
     headers:
-      Upgrade: websocket
-      Connection: Upgrade
-      Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
-      Sec-WebSocket-Version: 13
       Sec-WebSocket-Protocol: "{{callback_url}}"
       Sec-WebSocket-Extensions: "permessage-deflate; server_max_window_bits"
-
-  - method: GET
-    path:
-      - "{{BaseURL}}/ws"
-      - "{{BaseURL}}/websocket"
-      - "{{BaseURL}}/socket.io/"
-      - "{{BaseURL}}/api/ws"
-
-    headers:
-      Upgrade: websocket
-      Connection: Upgrade
-      Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
-      Sec-WebSocket-Version: 13
-      X-Forwarded-Proto: "{{callback_url}}"
       Origin: "{{callback_url}}"
 
-  - method: GET
+    inputs:
+      - data: |
+          {
+            "type": "upgrade_test",
+            "protocol": "{{callback_url}}",
+            "callback_url": "{{callback_url}}/websocket-upgrade"
+          }
+      - data: |
+          {
+            "command": "connect",
+            "external_protocol": "{{callback_url}}",
+            "origin": "{{callback_url}}"
+          }
+      - data: |
+          {
+            "action": "handshake_callback",
+            "webhook_url": "{{callback_url}}/callback",
+            "external_origin": "{{callback_url}}"
+          }
+
+  - address: "{{BaseURL}}"
     path:
-      - "{{BaseURL}}/ws"
-      - "{{BaseURL}}/websocket"
-      - "{{BaseURL}}/socket.io/"
-      - "{{BaseURL}}/api/ws"
+      - "/ws"
+      - "/websocket"
+      - "/socket.io/"
+      - "/api/ws"
 
     headers:
-      Upgrade: websocket
-      Connection: Upgrade
-      Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
-      Sec-WebSocket-Version: 13
+      X-Forwarded-Proto: "{{callback_url}}"
       X-WebSocket-Callback: "{{callback_url}}/callback"
       X-External-Origin: "{{callback_url}}"
 
-  - method: POST
-    path:
-      - "{{BaseURL}}/ws/connect"
-      - "{{BaseURL}}/websocket/handshake"
-      - "{{BaseURL}}/api/websocket/init"
+    inputs:
+      - data: |
+          {
+            "type": "protocol_injection",
+            "forward_to": "{{callback_url}}",
+            "proxy_target": "{{callback_url}}/proxy"
+          }
 
-    headers:
-      Content-Type: application/json
-      Accept: application/json
-
-    body: |
-      {
-        "protocol": "{{callback_url}}",
-        "origin": "{{callback_url}}",
-        "callback_url": "{{callback_url}}/webhook"
-      }
-
-    matchers:
-      - type: word
-        part: interactsh_protocol
-        words:
-          - "http"
-          - "dns"
-        condition: or
+matchers:
+  - type: word
+    part: interactsh_protocol
+    words:
+      - "http"
+      - "dns"
+    condition: or

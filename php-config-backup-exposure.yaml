@@ -1,0 +1,102 @@
+id: php-config-backup-exposure
+
+info:
+  name: PHP Configuration Backup File Exposure
+  author: geeknik
+  severity: high
+  description: |
+    Detects exposed PHP configuration backup files that may contain
+    database credentials, API keys, and other sensitive configuration data.
+  reference:
+    - https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/
+  tags: config,backup,php,exposure
+
+requests:
+  - method: GET
+    path:
+      # Common PHP config backup patterns
+      - "{{BaseURL}}/config.php.bak"
+      - "{{BaseURL}}/config.php.old"
+      - "{{BaseURL}}/config.php.backup"
+      - "{{BaseURL}}/config.php~"
+      - "{{BaseURL}}/config.inc.php.bak"
+      - "{{BaseURL}}/config.inc.php.old"
+      - "{{BaseURL}}/config.inc.php.backup"
+      - "{{BaseURL}}/configuration.php.bak"
+      - "{{BaseURL}}/wp-config.php.bak"
+      - "{{BaseURL}}/wp-config.php.old"
+      - "{{BaseURL}}/database.php.bak"
+      - "{{BaseURL}}/db.php.bak"
+      - "{{BaseURL}}/settings.php.bak"
+      - "{{BaseURL}}/.config.php.swp"
+      - "{{BaseURL}}/.config.inc.php.swp"
+
+    stop-at-first-match: true
+    matchers-condition: and
+    matchers:
+      - type: status
+        status:
+          - 200
+
+      # Must contain PHP code
+      - type: regex
+        regex:
+          - '<\?php'
+          - '\$[a-zA-Z_][\w]*\s*='  # PHP variable assignment
+        condition: or
+
+      # Must contain actual configuration data
+      - type: regex
+        regex:
+          # Database credentials
+          - '\$(db_password|database_password|db_pass|mysql_password|DB_PASSWORD)\s*=\s*["\'][^"\']+["\']'
+          - '\$(db_host|database_host|DB_HOST)\s*=\s*["\'][^"\']+["\']'
+          - 'define\s*\(\s*["\']DB_PASSWORD["\']\s*,\s*["\'][^"\']+["\']\s*\)'
+          
+          # API configurations
+          - '\$(api_key|apikey|API_KEY|secret_key)\s*=\s*["\'][a-zA-Z0-9_\-]{20,}["\']'
+          - 'define\s*\(\s*["\']API_KEY["\']\s*,\s*["\'][^"\']+["\']\s*\)'
+          
+          # Framework configs
+          - '\$(app\[[\'"](key|secret|password)[\'"]]\])\s*=\s*["\'][^"\']+["\']'
+          - '[\'"](password|secret|key)[\'"]]\s*=>\s*["\'][^"\']+["\']'
+          
+          # Connection arrays
+          - 'array\s*\([^)]*[\'"](password|pwd|pass)[\'"]]\s*=>\s*["\'][^"\']+["\']'
+        condition: or
+
+      # Exclude empty configs and placeholders
+      - type: word
+        words:
+          - "your_password_here"
+          - "changeme"
+          - "xxxxxx"
+          - "TODO"
+          - "PLACEHOLDER"
+        negative: true
+
+      # Not an HTML error page
+      - type: word
+        part: header
+        words:
+          - "text/html"
+        negative: true
+
+      # Reasonable file size
+      - type: dsl
+        dsl:
+          - "len(body) > 100 && len(body) < 524288"
+
+    extractors:
+      - type: regex
+        name: db_password
+        regex:
+          - '\$(?:db_password|DB_PASSWORD)\s*=\s*["\'"]([^"\'']+)["\''"]'
+          - 'define\s*\(\s*["\''"]DB_PASSWORD["\''"]\s*,\s*["\'']([^"\'']+)["\'']\s*\)'
+        group: 1
+
+      - type: regex
+        name: api_keys
+        regex:
+          - '\$(?:api_key|API_KEY)\s*=\s*["\'']([a-zA-Z0-9_\-]{20,})["\''"]'
+        group: 1

