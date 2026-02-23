@@ -78,15 +78,9 @@ http:
 
     matchers-condition: or
     matchers:
-      - type: word
-        part: interactsh_protocol
-        words:
-          - "http"
-        condition: and
-      - type: word
-        part: interactsh_request
-        words:
-          - "http3-stream-{{smuggle_id}}"
+      - type: dsl
+        dsl:
+          - '(interactsh_protocol == "http" || interactsh_protocol == "dns") && contains(interactsh_request, "http3-stream-{{smuggle_id}}")'
 
       - type: dsl
         dsl:
@@ -123,7 +117,7 @@ http:
         GET / HTTP/3
         Host: {{Hostname}}
         :method: CONNECT
-        :authority: {{callback}}:443
+        :authority: {{smuggle_id}}.{{callback}}:443
         :scheme: https
         :protocol: websocket
         origin: https://{{Hostname}}
@@ -138,4 +132,4 @@ http:
       - type: word
         part: interactsh_request
         words:
-          - "{{smuggle_id}}"
+          - "{{smuggle_id}}."

@@ -108,22 +108,14 @@ http:
         "validation_callback": "{{callback_url}}/policy-{{bypass_id}}"
       }
 
-    matchers-condition: or
+    matchers-condition: and
     matchers:
-      - type: word
-        part: body
-        words:
-          - "policy created"
-          - "trusted types configured"
-          - "bypass successful"
-        condition: or
-        case-insensitive: true
-
       - type: word
         part: interactsh_protocol
         words:
           - "http"
-        condition: and
+          - "dns"
+        condition: or
       - type: word
         part: interactsh_request
         words:
@@ -151,6 +143,8 @@ http:
         part: interactsh_protocol
         words:
           - "http"
+          - "dns"
+        condition: or
       - type: word
         part: interactsh_request
         words:
@@ -177,7 +171,9 @@ http:
       - type: word
         part: interactsh_request
         words:
-          - "{{bypass_id}}"
+          - "tt-bypass-{{bypass_id}}"
+          - "error-{{bypass_id}}"
+        condition: or
 
   - method: POST
     path:
@@ -202,6 +198,8 @@ http:
         part: interactsh_protocol
         words:
           - "http"
+          - "dns"
+        condition: or
       - type: word
         part: interactsh_request
         words:
