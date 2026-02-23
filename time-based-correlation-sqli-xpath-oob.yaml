@@ -248,7 +248,6 @@ http:
         part: interactsh_request
         regex:
           - "/(mysql|postgresql|mssql|oracle|sqlite|xpath|xml)-(time|heavy|bool|extract|count|xxe)-([a-z0-9A-Z]*)-([a-z0-9]+)"
-        group: 1,2,3,4
 
       - type: regex
         part: interactsh_request

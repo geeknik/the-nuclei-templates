@@ -221,7 +221,6 @@ http:
         part: interactsh_request
         regex:
           - "/stage([0-9]+)-([a-z]+)-([a-z0-9]+)"
-        group: 1,2,3
         internal: true
 
       - type: regex

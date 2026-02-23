@@ -20,14 +20,16 @@ info:
 
 variables:
   callback_url: "{{interactsh-url}}"
+  ws_base: "{{replace(replace(BaseURL, 'https://', 'wss://'), 'http://', 'ws://')}}"
 
 websocket:
-  - address: "{{BaseURL}}"
-    path:
-      - "/ws"
-      - "/websocket"
-      - "/socket.io/"
-      - "/api/ws"
+  - address: "{{ws_base}}{{ws_path}}"
+    payloads:
+      ws_path:
+        - "/ws"
+        - "/websocket"
+        - "/socket.io/"
+        - "/api/ws"
 
     inputs:
       - data: |
@@ -52,12 +54,20 @@ websocket:
             "token_url": "{{callback_url}}/oauth/token",
             "redirect_uri": "{{callback_url}}/oauth/callback"
           }
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "http"
+          - "dns"
+        condition: or
 
-  - address: "{{BaseURL}}"
-    path:
-      - "/ws/auth"
-      - "/websocket/authenticate"
-      - "/api/ws/login"
+  - address: "{{ws_base}}{{ws_path}}"
+    payloads:
+      ws_path:
+        - "/ws/auth"
+        - "/websocket/authenticate"
+        - "/api/ws/login"
 
     inputs:
       - data: |
@@ -82,11 +92,10 @@ websocket:
             "external_validator": "{{callback_url}}/bypass",
             "callback_url": "{{callback_url}}/bypassed"
           }
-
-matchers:
-  - type: word
-    part: interactsh_protocol
-    words:
-      - "http"
-      - "dns"
-    condition: or
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "http"
+          - "dns"
+        condition: or

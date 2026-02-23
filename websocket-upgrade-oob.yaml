@@ -20,17 +20,19 @@ info:
 
 variables:
   callback_url: "{{interactsh-url}}"
+  ws_base: "{{replace(replace(BaseURL, 'https://', 'wss://'), 'http://', 'ws://')}}"
 
 websocket:
-  - address: "{{BaseURL}}"
-    path:
-      - "/ws"
-      - "/websocket"
-      - "/socket.io/"
-      - "/api/ws"
-      - "/chat"
-      - "/live"
-      - "/stream"
+  - address: "{{ws_base}}{{ws_path}}"
+    payloads:
+      ws_path:
+        - "/ws"
+        - "/websocket"
+        - "/socket.io/"
+        - "/api/ws"
+        - "/chat"
+        - "/live"
+        - "/stream"
 
     headers:
       Sec-WebSocket-Protocol: "{{callback_url}}"
@@ -56,13 +58,21 @@ websocket:
             "webhook_url": "{{callback_url}}/callback",
             "external_origin": "{{callback_url}}"
           }
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "http"
+          - "dns"
+        condition: or
 
-  - address: "{{BaseURL}}"
-    path:
-      - "/ws"
-      - "/websocket"
-      - "/socket.io/"
-      - "/api/ws"
+  - address: "{{ws_base}}{{ws_path}}"
+    payloads:
+      ws_path:
+        - "/ws"
+        - "/websocket"
+        - "/socket.io/"
+        - "/api/ws"
 
     headers:
       X-Forwarded-Proto: "{{callback_url}}"
@@ -76,11 +86,10 @@ websocket:
             "forward_to": "{{callback_url}}",
             "proxy_target": "{{callback_url}}/proxy"
           }
-
-matchers:
-  - type: word
-    part: interactsh_protocol
-    words:
-      - "http"
-      - "dns"
-    condition: or
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "http"
+          - "dns"
+        condition: or

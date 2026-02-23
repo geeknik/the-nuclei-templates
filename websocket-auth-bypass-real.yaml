@@ -20,9 +20,10 @@ info:
 variables:
   callback: "{{interactsh-url}}"
   bypass_id: "{{randstr}}"
+  ws_base: "{{replace(replace(BaseURL, 'https://', 'wss://'), 'http://', 'ws://')}}"
 
 websocket:
-  - address: "ws://{{Hostname}}/ws"
+  - address: "{{ws_base}}/ws"
 
     inputs:
       # Test 1: No authentication
@@ -59,8 +60,9 @@ websocket:
           - "http"
           - "dns"
 
-  - address: "wss://{{Hostname}}/ws"
-    origin: "https://evil.com"
+  - address: "{{ws_base}}/ws"
+    headers:
+      Origin: "https://evil.com"
 
     inputs:
       # Test origin validation bypass
@@ -74,7 +76,7 @@ websocket:
           - "authenticated"
         negative: false
 
-  - address: "ws://{{Hostname}}/socket.io/?transport=websocket"
+  - address: "{{ws_base}}/socket.io/?transport=websocket"
 
     inputs:
       # Socket.IO specific bypass
@@ -88,7 +90,7 @@ websocket:
           - '43\["authenticated"'
           - '"sid":"[a-zA-Z0-9]+"'
 
-  - address: "ws://{{Hostname}}/graphql-ws"
+  - address: "{{ws_base}}/graphql-ws"
 
     inputs:
       # GraphQL subscription bypass

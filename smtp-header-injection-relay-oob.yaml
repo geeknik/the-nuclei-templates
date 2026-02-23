@@ -231,7 +231,6 @@ http:
         part: interactsh_request
         regex:
           - "/(email-header|subject-header|message-header|invite|webhook|config|template|bulk)-([a-z0-9]+)"
-        group: 1,2
 
       - type: regex
         part: interactsh_request

@@ -19,16 +19,18 @@ info:
 
 variables:
   callback_url: "{{interactsh-url}}"
+  ws_base: "{{replace(replace(BaseURL, 'https://', 'wss://'), 'http://', 'ws://')}}"
 
 websocket:
-  - address: "{{BaseURL}}"
-    path:
-      - "/ws"
-      - "/websocket"
-      - "/socket.io/"
-      - "/api/ws"
-      - "/bridge"
-      - "/tunnel"
+  - address: "{{ws_base}}{{ws_path}}"
+    payloads:
+      ws_path:
+        - "/ws"
+        - "/websocket"
+        - "/socket.io/"
+        - "/api/ws"
+        - "/bridge"
+        - "/tunnel"
 
     inputs:
       - data: |
@@ -56,12 +58,20 @@ websocket:
               "proxy_headers": true
             }
           }
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "http"
+          - "dns"
+        condition: or
 
-  - address: "{{BaseURL}}"
-    path:
-      - "/ws/proxy"
-      - "/websocket/forward"
-      - "/api/ws/tunnel"
+  - address: "{{ws_base}}{{ws_path}}"
+    payloads:
+      ws_path:
+        - "/ws/proxy"
+        - "/websocket/forward"
+        - "/api/ws/tunnel"
 
     inputs:
       - data: |
@@ -85,11 +95,10 @@ websocket:
             "tunnel_target": "{{callback_url}}",
             "callback_url": "{{callback_url}}/tunnel-ready"
           }
-
-matchers:
-  - type: word
-    part: interactsh_protocol
-    words:
-      - "http"
-      - "dns"
-    condition: or
+    matchers:
+      - type: word
+        part: interactsh_protocol
+        words:
+          - "http"
+          - "dns"
+        condition: or
