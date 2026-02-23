@@ -36,7 +36,14 @@ requests:
     matchers-condition: and
     matchers:
       - type: word
-        part: interactsh-protocol
+        part: interactsh_protocol
         words:
           - "dns"
           - "http"
+        condition: or
+      - type: word
+        part: interactsh_request
+        words:
+          - "pingback"
+          - "xmlrpc"
+        condition: or

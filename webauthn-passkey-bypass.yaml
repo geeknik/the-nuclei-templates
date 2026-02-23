@@ -97,12 +97,16 @@ http:
 
         {"username":"victim","credentialId":"../../admin/credential"}
 
+    matchers-condition: and
     matchers:
+      - type: status
+        status:
+          - 200
       - type: dsl
         dsl:
-          - 'contains(body, "admin") || status_code == 200'
+          - 'contains(body, "credentialId") || contains(body, "allowCredentials") || contains(body, "challenge")'
 
-  # Test 4: Origin validation bypass
+  # Test 4: Origin validation bypass - server should reject cross-origin clientDataJSON
   - raw:
       - |
         POST {{BaseURL}}/webauthn/authenticate HTTP/1.1
@@ -121,10 +125,28 @@ http:
           }
         }
 
+    matchers-condition: and
     matchers:
-      - type: dsl
-        dsl:
-          - '!contains(body, "origin") || contains(body, "success")'
+      - type: status
+        status:
+          - 200
+      # Vulnerable if server returns success despite cross-origin clientDataJSON
+      - type: word
+        words:
+          - "success"
+          - "authenticated"
+          - "token"
+          - "session"
+        condition: or
+      - type: word
+        words:
+          - "invalidOrigin"
+          - "origin mismatch"
+          - "invalid origin"
+          - "OriginNotAllowed"
+          - "forbidden"
+        condition: or
+        negative: true
 
   # Test 5: Attestation format confusion
   - raw:

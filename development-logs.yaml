@@ -14,15 +14,18 @@ requests:
 
     matchers-condition: and
     matchers:
+      # Both must be present to confirm this is a real Rails development.log
       - type: word
         words:
           - "Connecting to database specified by database.yml"
           - "Started GET"
-        condition: or
+        condition: and
       - type: word
         words:
           - "DEPRECATION WARNING"
           - "CREATE TABLE"
+          - "Processing by"
+          - "Rendered "
         condition: or
       - type: word
         part: header

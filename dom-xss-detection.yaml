@@ -97,12 +97,12 @@ headless:
 
     matchers-condition: and
     matchers:
+      # DOM XSS triggers fetch() callbacks - only HTTP interactions are relevant,
+      # not DNS (DNS would indicate network resolution, not JS execution).
       - type: word
         part: interactsh_protocol
         words:
           - "http"
-          - "dns"
-        condition: or
       - type: word
         part: interactsh_request
         words:

@@ -1,22 +1,22 @@
 id: http3-quic-smuggling
 
 info:
-  name: HTTP/3 QUIC Request Smuggling Detection
+  name: HTTP/2 Upgrade and Protocol Confusion Smuggling Detection
   author: geeknik
-  severity: critical
+  severity: medium
   description: |
-    Detects ACTUAL HTTP/3 request smuggling vulnerabilities by exploiting
-    differences in HTTP/3 to HTTP/2 translation at reverse proxies. Tests
-    for stream confusion, header injection, and protocol downgrade attacks
-    that lead to request smuggling.
+    Detects request smuggling vulnerabilities arising from HTTP protocol confusion
+    at reverse proxies: HTTP/2 upgrade via h2c, Alt-Svc header injection, and
+    pseudo-header injection that may be mishandled by intermediaries. Note: these
+    tests run over HTTP/1.1; true QUIC/HTTP3 testing requires native UDP support.
   reference:
     - https://portswigger.net/research/http3-connection-contamination
     - https://www.blackhat.com/us-23/briefings/schedule/#http3-quic-attacks
   classification:
-    cvss-metrics: CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:L
-    cvss-score: 9.0
+    cvss-metrics: CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:L/I:L/A:N
+    cvss-score: 5.4
     cwe-id: CWE-444
-  tags: http3,quic,smuggling,critical
+  tags: http2,protocol-confusion,smuggling,alt-svc
 
 variables:
   smuggle_id: "{{randstr}}"

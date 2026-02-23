@@ -11,7 +11,15 @@ requests:
     path:
       - '{{BaseURL}}'
     redirects: true
+    matchers-condition: and
     matchers:
+      - type: status
+        status:
+          - 200
+      - type: word
+        part: header
+        words:
+          - "text/html"
       - type: dsl
         dsl:
           - '!contains(tolower(all_headers), ''content-security-policy'')'
