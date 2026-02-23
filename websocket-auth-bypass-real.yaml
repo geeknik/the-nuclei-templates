@@ -46,13 +46,13 @@ websocket:
 
     matchers-condition: or
     matchers:
-      - type: word
+      - type: regex
         part: response
-        words:
-          - '"authenticated":true'
-          - '"role":"admin"'
-          - '"success":true'
+        regex:
+          - '"authenticated"\s*:\s*true'
+          - '"role"\s*:\s*"admin"'
           - 'Welcome admin'
+        condition: or
 
       - type: dsl
         dsl:
@@ -72,7 +72,7 @@ websocket:
         words:
           - "connected"
           - "authenticated"
-        negative: false
+        condition: and
 
   - address: "{{ws_base}}/socket.io/?transport=websocket"
 
@@ -86,7 +86,7 @@ websocket:
         part: response
         regex:
           - '43\["authenticated"'
-          - '"sid":"[a-zA-Z0-9]+"'
+        condition: or
 
   - address: "{{ws_base}}/graphql-ws"
 
@@ -95,9 +95,19 @@ websocket:
       - data: '{"type":"connection_init","payload":{"authorization":""}}'
       - data: '{"type":"start","payload":{"query":"subscription { adminData }"}}'
 
+    matchers-condition: and
     matchers:
       - type: word
         part: response
         words:
           - "connection_ack"
           - '"data":'
+        condition: and
+      - type: word
+        part: response
+        words:
+          - "unauthorized"
+          - "forbidden"
+          - "invalid token"
+        condition: or
+        negative: true
