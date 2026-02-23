@@ -54,11 +54,9 @@ websocket:
           - '"success":true'
           - 'Welcome admin'
 
-      - type: word
-        part: interactsh_protocol
-        words:
-          - "http"
-          - "dns"
+      - type: dsl
+        dsl:
+          - '(interactsh_protocol == "http" || interactsh_protocol == "dns") && contains(interactsh_request, "ws-{{bypass_id}}")'
 
   - address: "{{ws_base}}/ws"
     headers:
