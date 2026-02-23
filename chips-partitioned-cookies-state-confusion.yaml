@@ -175,7 +175,7 @@ http:
         "bypass_checks": true
       }
 
-    matchers-condition: or
+    matchers-condition: and
     matchers:
       - type: word
         part: body
