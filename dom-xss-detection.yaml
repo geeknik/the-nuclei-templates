@@ -95,22 +95,18 @@ headless:
           name: vulnerabilities
           script: "window.vulns || []"
 
-    matchers-condition: or
+    matchers-condition: and
     matchers:
       - type: word
         part: interactsh_protocol
         words:
           - "http"
           - "dns"
-
-      - type: word
-        part: extract
-        name: vulnerabilities
-        words:
-          - "eval-overridden"
-          - "document-write-found"
-          - "location-injectable"
         condition: or
+      - type: word
+        part: interactsh_request
+        words:
+          - "{{xss_id}}"
 
     extractors:
       - type: regex

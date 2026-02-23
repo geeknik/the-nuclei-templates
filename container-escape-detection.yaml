@@ -26,20 +26,18 @@ requests:
       - "{{BaseURL}}/proc/self/cgroup"
       - "{{BaseURL}}/proc/1/cgroup"
 
-    matchers-condition: or
+    matchers-condition: and
     matchers:
-      - type: word
-        part: body
-        words:
-          - "docker"
-          - "kubepods"
-          - "containerd"
-
       - type: regex
         part: body
         regex:
           - '/docker/[a-f0-9]{64}'
           - '/kubepods/[a-f0-9-]+'
+          - 'containerd://[a-f0-9]{64}'
+        condition: or
+      - type: status
+        status:
+          - 200
 
   - method: GET
     path:

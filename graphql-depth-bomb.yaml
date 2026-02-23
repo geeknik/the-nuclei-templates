@@ -92,17 +92,20 @@ requests:
           - "Query complexity"
           - "depth limit"
           - "Maximum query depth"
+        condition: or
 
       - type: dsl
         dsl:
-          - "duration >= 5"
+          - "duration >= 8"
           - "status_code == 200"
+          - "contains(tolower(body), 'errors') || contains(tolower(body), 'query') || contains(tolower(body), 'graphql')"
         condition: and
 
-      - type: status
-        status:
-          - 503
-          - 429
+      - type: dsl
+        dsl:
+          - "status_code == 429 || status_code == 503"
+          - "contains(tolower(body), 'graphql') || contains(tolower(body), 'query') || contains(tolower(body), 'depth') || contains(tolower(body), 'complex')"
+        condition: and
 
     extractors:
       - type: regex
