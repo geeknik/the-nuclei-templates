@@ -145,6 +145,7 @@ http:
         "callback_url": "{{callback_url}}/chips-test-{{partition_id}}"
       }
 
+    matchers-condition: and
     matchers:
       - type: word
         part: interactsh_protocol
@@ -152,6 +153,10 @@ http:
           - "http"
           - "dns"
         condition: or
+      - type: word
+        part: interactsh_request
+        words:
+          - "chips-test-{{partition_id}}"
 
   - method: PUT
     path:
