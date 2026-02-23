@@ -49,12 +49,19 @@ websocket:
             "allowed_origins": ["{{callback_url}}"],
             "callback_url": "{{callback_url}}/validated"
           }
+    matchers-condition: and
     matchers:
       - type: word
         part: interactsh_protocol
         words:
           - "http"
           - "dns"
+        condition: or
+      - type: word
+        part: interactsh_request
+        words:
+          - "origin-bypass"
+          - "validated"
         condition: or
 
   - address: "{{ws_base}}{{ws_path}}"
@@ -77,6 +84,7 @@ websocket:
             "forwarded_host": "{{callback_url}}",
             "callback_url": "{{callback_url}}/null-origin"
           }
+    matchers-condition: and
     matchers:
       - type: word
         part: interactsh_protocol
@@ -84,6 +92,10 @@ websocket:
           - "http"
           - "dns"
         condition: or
+      - type: word
+        part: interactsh_request
+        words:
+          - "null-origin"
 
   - address: "{{ws_base}}{{ws_path}}"
     payloads:
@@ -111,10 +123,17 @@ websocket:
             "trusted_domain": "{{callback_url}}",
             "redirect_callback": "{{callback_url}}/cors-success"
           }
+    matchers-condition: and
     matchers:
       - type: word
         part: interactsh_protocol
         words:
           - "http"
           - "dns"
+        condition: or
+      - type: word
+        part: interactsh_request
+        words:
+          - "subdomain-bypass"
+          - "cors-success"
         condition: or

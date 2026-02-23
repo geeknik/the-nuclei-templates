@@ -58,12 +58,19 @@ websocket:
               "proxy_headers": true
             }
           }
+    matchers-condition: and
     matchers:
       - type: word
         part: interactsh_protocol
         words:
           - "http"
           - "dns"
+        condition: or
+      - type: word
+        part: interactsh_request
+        words:
+          - "endpoint"
+          - "webhook"
         condition: or
 
   - address: "{{ws_base}}{{ws_path}}"
@@ -95,10 +102,19 @@ websocket:
             "tunnel_target": "{{callback_url}}",
             "callback_url": "{{callback_url}}/tunnel-ready"
           }
+    matchers-condition: and
     matchers:
       - type: word
         part: interactsh_protocol
         words:
           - "http"
           - "dns"
+        condition: or
+      - type: word
+        part: interactsh_request
+        words:
+          - "callback"
+          - "relay"
+          - "connected"
+          - "tunnel-ready"
         condition: or

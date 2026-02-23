@@ -58,12 +58,19 @@ websocket:
             "webhook_url": "{{callback_url}}/callback",
             "external_origin": "{{callback_url}}"
           }
+    matchers-condition: and
     matchers:
       - type: word
         part: interactsh_protocol
         words:
           - "http"
           - "dns"
+        condition: or
+      - type: word
+        part: interactsh_request
+        words:
+          - "websocket-upgrade"
+          - "callback"
         condition: or
 
   - address: "{{ws_base}}{{ws_path}}"
@@ -86,10 +93,17 @@ websocket:
             "forward_to": "{{callback_url}}",
             "proxy_target": "{{callback_url}}/proxy"
           }
+    matchers-condition: and
     matchers:
       - type: word
         part: interactsh_protocol
         words:
           - "http"
           - "dns"
+        condition: or
+      - type: word
+        part: interactsh_request
+        words:
+          - "callback"
+          - "proxy"
         condition: or

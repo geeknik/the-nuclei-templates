@@ -54,12 +54,23 @@ websocket:
             "token_url": "{{callback_url}}/oauth/token",
             "redirect_uri": "{{callback_url}}/oauth/callback"
           }
+    matchers-condition: and
     matchers:
       - type: word
         part: interactsh_protocol
         words:
           - "http"
           - "dns"
+        condition: or
+      - type: word
+        part: interactsh_request
+        words:
+          - "validate"
+          - "auth-success"
+          - "jwt/validate"
+          - "oauth/authorize"
+          - "oauth/token"
+          - "oauth/callback"
         condition: or
 
   - address: "{{ws_base}}{{ws_path}}"
@@ -92,10 +103,23 @@ websocket:
             "external_validator": "{{callback_url}}/bypass",
             "callback_url": "{{callback_url}}/bypassed"
           }
+    matchers-condition: and
     matchers:
       - type: word
         part: interactsh_protocol
         words:
           - "http"
           - "dns"
+        condition: or
+      - type: word
+        part: interactsh_request
+        words:
+          - "auth"
+          - "userinfo"
+          - "authenticated"
+          - "saml/sso"
+          - "saml/metadata"
+          - "saml/acs"
+          - "bypass"
+          - "bypassed"
         condition: or
